@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe Neon</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: #0f0f1b;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+      overflow: hidden;
+    }
+
+    .start-screen, .game-container {
+      position: absolute;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .start-screen {
+      z-index: 1;
+      background: #0f0f1b;
+      width: 100%;
+      height: 100%;
+    }
+
+    .start-screen button {
+      padding: 20px 40px;
+      font-size: 2rem;
+      border: none;
+      border-radius: 10px;
+      background: #ff0059;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 20px #ff0059;
+      transition: 0.3s;
+    }
+
+    .start-screen button:hover {
+      transform: scale(1.1);
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-template-rows: repeat(3, 100px);
+      gap: 10px;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 0 10px #444;
+    }
+
+    .cell.x {
+      color: #00f0ff;
+      text-shadow: 0 0 10px #00f0ff;
+    }
+
+    .cell.o {
+      color: #ff0059;
+      text-shadow: 0 0 10px #ff0059;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 1.5rem;
+      color: #fff;
+    }
+
+    @media (max-width: 400px) {
+      .board {
+        grid-template-columns: repeat(3, 80px);
+        grid-template-rows: repeat(3, 80px);
+      }
+      .cell {
+        width: 80px;
+        height: 80px;
+        font-size: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="start-screen" id="startScreen">
+    <button onclick="startGame()">START</button>
+  </div>
+
+  <div class="game-container" style="display: none;" id="gameContainer">
+    <div class="board" id="board">
+      <div class="cell" data-index="0"></div>
+      <div class="cell" data-index="1"></div>
+      <div class="cell" data-index="2"></div>
+      <div class="cell" data-index="3"></div>
+      <div class="cell" data-index="4"></div>
+      <div class="cell" data-index="5"></div>
+      <div class="cell" data-index="6"></div>
+      <div class="cell" data-index="7"></div>
+      <div class="cell" data-index="8"></div>
+    </div>
+    <div class="status" id="status"></div>
+  </div>
+
+  <!-- Audio for click and victory -->
+  <audio id="clickSound" src="computer-mouse-click-351398.mp3" preload="auto"></audio>
+  <audio id="victorySound" src="o-win-sound.mp3" preload="auto"></audio>
+
+  <script>
+    const startScreen = document.getElementById('startScreen');
+    const gameContainer = document.getElementById('gameContainer');
+    const board = document.getElementById('board');
+    const statusText = document.getElementById('status');
+    const clickSound = document.getElementById('clickSound');
+    const victorySound = document.getElementById('victorySound');
+
+    let currentPlayer = 'x';
+    let gameState = Array(9).fill(null);
+    let gameActive = true;
+
+    function startGame() {
+      startScreen.style.display = 'none';
+      gameContainer.style.display = 'flex';
+      resetGame();
+    }
+
+    function resetGame() {
+      gameState = Array(9).fill(null);
+      currentPlayer = 'x';
+      gameActive = true;
+      document.querySelectorAll('.cell').forEach(cell => {
+        cell.textContent = '';
+        cell.className = 'cell';
+      });
+      statusText.textContent = "Player X's Turn";
+    }
+
+    function checkWinner() {
+      const winPatterns = [
+        [0,1,2], [3,4,5], [6,7,8],
+        [0,3,6], [1,4,7], [2,5,8],
+        [0,4,8], [2,4,6]
+      ];
+
+      for (const pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (gameState[a] && gameState[a] === gameState[b] && gameState[a] === gameState[c]) {
+          return gameState[a];
+        }
+      }
+      return gameState.includes(null) ? null : 'draw';
+    }
+
+    board.addEventListener('click', e => {
+      const index = e.target.dataset.index;
+      if (!index || gameState[index] || !gameActive) return;
+
+      gameState[index] = currentPlayer;
+      e.target.textContent = currentPlayer.toUpperCase();
+      e.target.classList.add(currentPlayer);
+
+      // Play click sound
+      clickSound.currentTime = 0;
+      clickSound.play();
+
+      const result = checkWinner();
+      if (result) {
+        gameActive = false;
+        if (result === 'draw') {
+          statusText.textContent = "It's a Draw!";
+        } else {
+          statusText.textContent = `Player ${result.toUpperCase()} Wins!`;
+          victorySound.currentTime = 0;
+          victorySound.play();  // 🔊 Play victory sound
+        }
+        setTimeout(() => {
+          alert(statusText.textContent);
+          resetGame();
+        }, 1000);
+      } else {
+        currentPlayer = currentPlayer === 'x' ? 'o' : 'x';
+        statusText.textContent = `Player ${currentPlayer.toUpperCase()}'s Turn`;
+      }
+    });
+  </script>
+</body>
+</html>
